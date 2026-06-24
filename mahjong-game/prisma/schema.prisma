@@ -1,0 +1,205 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum RoundType {
+  EAST
+  SOUTH
+  WEST
+  NORTH
+}
+
+enum SeatWind {
+  EAST
+  SOUTH
+  WEST
+  NORTH
+}
+
+enum RoomStatus {
+  WAITING
+  READY 
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+enum HandResult {
+  MAHJONG
+  WALL_GAME
+  DEAD
+}
+
+enum MeldType {
+  PUNG
+  KONG
+  CHOW
+  MAHJONG
+  PAIR
+  KNIT
+  CROCHET
+  MIXED_CHOW
+}
+
+enum ActionType {
+  DRAW
+  DISCARD
+  CLAIM_PUNG
+  CLAIM_KONG
+  CLAIM_CHOW
+  CLAIM_MAHJONG
+  FLOWER_REPLACE
+  DECLARE_MAHJONG
+  WRONG_DECLARATION
+}
+
+enum RoundMode {
+  EAST_REGULAR
+  EAST_ALTERNATIVE
+  SOUTH
+  WEST
+  NORTH
+}
+model SessionConfig {
+  id String @id @default(uuid())
+  roomId String @unique
+  rounds Json
+
+  createdAt DateTime @default(now())
+
+  room Room @relation(fields: [roomId],references: [id])
+
+  @@map("session_configs")
+}
+
+model Player {
+  id          String   @id @default(uuid())
+  displayName String
+  createdAt   DateTime @default(now())
+
+  roomPlayers RoomPlayer[]
+  handsWon    Hand[]       @relation("HandWinner")
+  gameactions GameAction[]
+  handscores  HandScore[]
+
+  @@map("players")
+}
+
+model Room {
+  id          String     @id @default(uuid())
+  roomCode    String     @unique
+  status      RoomStatus @default(WAITING)
+  createdAt   DateTime   @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  roomPlayers RoomPlayer[]
+  rounds      Round[]
+  sessionConfig SessionConfig?
+
+  @@map("rooms")
+}
+
+model RoomPlayer {
+  id           String   @id @default(uuid())
+  roomId       String
+  playerId     String
+  originalSeat SeatWind
+  isHost       Boolean  @default(false)
+  joinedAt     DateTime @default(now())
+  totalScore   Int      @default(0)
+
+  room   Room   @relation(fields: [roomId], references: [id])
+  player Player @relation(fields: [playerId], references: [id])
+
+  @@unique([roomId, playerId])
+  @@index([roomId])
+  @@index([playerId])
+  @@map("room_players")
+}
+
+model Round {
+  id          String    @id @default(uuid())
+  roomId      String
+  roundType   RoundType
+  roundNumber Int
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+
+  room Room   @relation(fields: [roomId], references: [id])
+  hand Hand[]
+
+  @@map("rounds")
+}
+
+model Hand {
+  id              String     @id @default(uuid())
+  roundId         String
+  dealNumber      Int
+  dealerSeat      SeatWind
+  result          HandResult
+  winnerId        String?
+  winningSeat     SeatWind?
+  winningTiles    Json?
+  meldsExposed    Json?
+  doublesApplied  Json?
+  basicPoints     Int?
+  finalPoints     Int?
+  specialHandName String?
+  startedAt       DateTime   @default(now())
+  endedAt         DateTime?
+
+  round   Round        @relation(fields: [roundId], references: [id])
+  winner  Player?      @relation("HandWinner", fields: [winnerId], references: [id])
+  actions GameAction[]
+  scores  HandScore[]
+
+  @@index([roundId])
+  @@index([winnerId])
+  @@map("hands")
+}
+
+model HandScore {
+  id           String   @id @default(uuid())
+  handId       String
+  playerId     String
+  seatWind     SeatWind
+  pointsChange Int
+  isWinner     Boolean  @default(false)
+  isOnPenalty  Boolean  @default(false)
+  flowerBonus  Int      @default(0)
+  reason       String?
+
+  hand   Hand   @relation(fields: [handId], references: [id])
+  player Player @relation(fields: [playerId], references: [id])
+
+  @@map("hand_scores")
+}
+
+model GameAction {
+  id         String     @id @default(uuid())
+  handId     String
+  playerId   String
+  actionType ActionType
+  tile       String?
+  meldType   MeldType?
+  meldTiles  Json?
+  timestamp  DateTime   @default(now())
+
+  hand   Hand   @relation(fields: [handId], references: [id])
+  player Player @relation(fields: [playerId], references: [id])
+
+  @@index([handId])
+  @@index([playerId])
+  @@map("game_actions")
+}

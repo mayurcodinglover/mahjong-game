@@ -2,14 +2,17 @@
   "name": "mahjong-game",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "node server/index.js",
     "build": "next build",
-    "start": "next start",
+    "start": "NODE_ENV=production node server/index.js",
     "lint": "eslint"
   },
   "dependencies": {
+    "@prisma/adapter-mariadb": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "http": "^0.0.1-security",
     "ioredis": "^5.11.1",
     "next": "16.2.9",
     "prisma": "^7.8.0",
