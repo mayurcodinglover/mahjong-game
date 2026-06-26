@@ -1,6 +1,7 @@
 import {createServer} from "http"
 import next from "next"
 import {Server} from "socket.io"
+import initializeSocket from "./socket/index.js"
 
 
 const app=next({dev:true})
@@ -20,13 +21,9 @@ app.prepare().then(()=>{
             methods:['GET','POST'],
         },
     });
-    io.on("connection",(socket)=>{
-        console.log(`[socket] client connected :${socket.id}`)
-
-        socket.on('disconnect',()=>{
-            console.log(`[socket] client disconnected :${socket.id}`);
-        });
-    });
+     // Hand io to our socket initializer — all event registration happens there
+  initializeSocket(io); // NEW — replaces the old inline io.on('connection') block
+  
     httpServer.listen(PORT,()=>{
         console.log(`> server ready on http://localhost:${PORT}`)
     });

@@ -1,4 +1,4 @@
-import getRedisClient from "./redisClient";
+import getRedisClient from "./redisClient.js";
 
 const STATE_TTL_SECONDS=60*60*24;
 
