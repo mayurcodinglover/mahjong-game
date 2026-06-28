@@ -51,6 +51,8 @@ export async function POST(request)
           return Response.json({ error: 'Room is full' }, { status: 409 });
         }
         const nextSeat=SEAT_ORDER[room.roomPlayers.length];
+        console.log(room.roomPlayers.length);
+        
         const roomPlayer=await prisma.roomPlayer.create({
             data:{
                 roomId:room.id,

@@ -86,7 +86,7 @@ export async function POST(req,res){
         return {room,hostSeat,config}
         });
 
-        return NextResponse.json({status:201},{
+        return NextResponse.json({
             roomId:result.room.id,
             roomCOde:result.room.roomCode,
             status:result.room.status,

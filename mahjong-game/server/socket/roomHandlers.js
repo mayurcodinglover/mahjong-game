@@ -21,11 +21,14 @@ function registerRoomHandlers(io,socket)
      */
     socket.on('game:join',async({roomId,playerId})=>{
         try {
+            console.log(roomId,playerId);
+            
             //validate does this player actually belongs to this room?
             const roomPlayer=await prisma.roomPlayer.findFirst({
                 where:{roomId,playerId},
                 include:{player:true},
             });
+            console.log(roomPlayer);
             if(!roomPlayer)
             {
                 socket.emit('game:error',{
@@ -54,7 +57,7 @@ function registerRoomHandlers(io,socket)
 
             await markPlayerConnected(roomId,playerId);
 
-            const connectedCount=await getConnectedCount(roomID);
+            const connectedCount=await getConnectedCount(roomId);
 
             // Tell EVERYONE in this room (including the new joiner) that someone connected
             io.to(`game:${roomId}`).emit('game:playerJoined',{
