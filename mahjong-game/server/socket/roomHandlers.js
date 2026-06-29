@@ -50,7 +50,7 @@ function registerRoomHandlers(io,socket)
                 });
                 return;
             }
-            socket.join('game:${roomId}')
+            socket.join(`game:${roomId}`)
             socket.roomId=roomId;
             socket.playerId=playerId;
             socket.seat=roomPlayer.originalSeat;

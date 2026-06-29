@@ -6,6 +6,37 @@ const gameKey=(roomId)=>`game:room:${roomId}`;
 const connectedKey=(roomId)=>`connected:${roomId}`;
 
 /**
+ * Store the socket ID for a specific player in a room.
+ * We need this so we can emit private events to individual players
+ * (e.g. sending a player their hand without others seeing it).
+ */
+
+async function savePlayerSocket(roomId,playerId,socketId){
+    const redis=getRedisClient();
+    await redis.hset(`socket:${roomId}`,playerId,socketId);
+    await redis.expire(`socket:${roomId}`,STATE_TTL_SECONDS);
+}
+/**
+ * Get the socket ID for a specific player in a room.
+ */
+
+async function getPlayerSocket(roomId,playerId)
+{
+    const redis=getRedisClient();
+    return await redis.hget(`socket:${roomId}`,playerId);
+}
+/**
+ * Get all player socket mappings for a room.
+ * Returns object: { playerId: socketId, ... }
+ */
+
+async function getAllPlayerSockets(roomId)
+{
+    const redis=getRedisClient();
+    return await redis.hgetall(`socket:${roomId}`);
+}
+
+/**
  * Save the full game state for a room.
  * Overwrites whatever was there before — we always store the complete state,
  * never partial updates. This avoids partial-write bugs where one field
@@ -87,4 +118,4 @@ async function cleanupRoom(roomId)
     await redis.del(connectedKey(roomId));
 }
 
-export {saveGameState,loadGameState,deleteGameState,markPlayerConnected,markPlayerDisconnected,getConnectedCount,getConnectedPlayers,cleanupRoom};
+export {saveGameState,loadGameState,deleteGameState,markPlayerConnected,markPlayerDisconnected,getConnectedCount,getConnectedPlayers,cleanupRoom,savePlayerSocket,getPlayerSocket,getAllPlayerSockets};
