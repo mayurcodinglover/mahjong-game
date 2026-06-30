@@ -2,6 +2,7 @@
 // These are the FIRST events that fire after a client connects.
 
 import { markPlayerConnected,markPlayerDisconnected,getConnectedCount,getConnectedPlayers,loadGameState } from "../redis/gameState.js";
+import { savePlayerSocket } from "../redis/gameState.js";
 
 import {prisma}  from "../../app/lib/prisma.js";
 
@@ -51,6 +52,7 @@ function registerRoomHandlers(io,socket)
                 return;
             }
             socket.join(`game:${roomId}`)
+            await savePlayerSocket(roomId, playerId, socket.id);
             socket.roomId=roomId;
             socket.playerId=playerId;
             socket.seat=roomPlayer.originalSeat;
